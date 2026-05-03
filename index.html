@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mines Predictor - Fun Education</title>
+    <!-- Font Awesome for Social Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --neon-green: #00ff88;
+            --neon-red: #ff3e3e;
+            --text-color: #ffffff;
+            --tg-gradient: linear-gradient(135deg, #0088cc, #00aaff);
+            --yt-gradient: linear-gradient(135deg, #ff0000, #cc0000);
+        }
+
+        [data-theme="light"] {
+            --primary-bg: #f1f5f9;
+            --glass-bg: rgba(0, 0, 0, 0.05);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --text-color: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Particle Background Effect */
+        .bg-animate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+
+        /* Main Container */
+        .container {
+            width: 90%;
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* Platform Selector */
+        .platform-box {
+            margin-bottom: 20px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            margin-top: 8px;
+            outline: none;
+        }
+
+        /* Grid System */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 25px 0;
+            perspective: 1000px;
+        }
+
+        .tile {
+            aspect-ratio: 1/1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.4s, background 0.4s, box-shadow 0.4s;
+        }
+
+        .tile:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Reveal Animations */
+        .tile.safe {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--neon-green);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), glowSoft 2s infinite alternate;
+        }
+
+        .tile.mine {
+            background: rgba(255, 62, 62, 0.2);
+            border-color: var(--neon-red);
+            box-shadow: 0 0 10px var(--neon-red);
+            opacity: 0.7;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5) rotateY(90deg); opacity: 0; }
+            100% { transform: scale(1) rotateY(0); opacity: 1; }
+        }
+
+        @keyframes glowSoft {
+            from { box-shadow: 0 0 5px var(--neon-green); }
+            to { box-shadow: 0 0 20px var(--neon-green); }
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .predict-btn {
+            background: var(--neon-green);
+            color: #000;
+        }
+
+        .predict-btn:hover {
+            box-shadow: 0 0 20px var(--neon-green);
+            transform: translateY(-2px);
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-color);
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Social Buttons */
+        .social-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .social-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .tg-btn { background: var(--tg-gradient); }
+        .yt-btn { background: var(--yt-gradient); }
+
+        .social-btn:hover {
+            filter: brightness(1.2);
+            transform: scale(1.05);
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .grid { gap: 6px; }
+            .tile { font-size: 1.2rem; }
+            .container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animate" id="bgAnimate"></div>
+
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="container">
+        <h1 id="displayPlatform">SELECT PLATFORM</h1>
+        
+        <div class="platform-box">
+            <select id="platformSelect" onchange="updatePlatform()">
+                <option value="" disabled selected>Select Platform</option>
+                <option value="Stake">STAKE</option>
+                <option value="1Win">1WIN</option>
+                <option value="Tashan Win">TASHAN WIN</option>
+                <option value="Bet365">BET365</option>
+                <option value="1xBet">1XBET</option>
+            </select>
+            
+            <input type="text" id="seedInput" placeholder="Enter your seed (e.g. 7f83...)">
+        </div>
+
+        <div class="grid" id="grid">
+            <!-- 25 Tiles Generated by JS -->
+        </div>
+
+        <div class="btn-group">
+            <button class="predict-btn" onclick="predictMines()">Predict Safe Mines</button>
+            <button class="reset-btn" onclick="resetGame()">Reset Game</button>
+        </div>
+
+        <div class="social-btns">
+            <a href="#" class="social-btn tg-btn" target="_blank">
+                <i class="fab fa-telegram"></i> JOIN TELEGRAM
+            </a>
+            <a href="#" class="social-btn yt-btn" target="_blank">
+                <i class="fab fa-youtube"></i> YOUTUBE
+            </a>
+        </div>
+    </div>
+
+    <footer>Created by Fun Education</footer>
+
+    <script>
+        // 1. Initialize Grid
+        const grid = document.getElementById('grid');
+        const platformSelect = document.getElementById('platformSelect');
+        const displayPlatform = document.getElementById('displayPlatform');
+        const seedInput = document.getElementById('seedInput');
+
+        function createGrid() {
+            grid.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                tile.dataset.index = i;
+                grid.appendChild(tile);
+            }
+        }
+        createGrid();
+
+        // 2. Platform Selector Logic
+        function updatePlatform() {
+            displayPlatform.innerText = platformSelect.value.toUpperCase();
+        }
+
+        // 3. Seeded Random Generator (Mulberry32)
+        function splitmix32(a) {
+            return function() {
+                a |= 0; a = a + 0x9e3779b9 | 0;
+                var t = a ^ a >>> 16; t = Math.imul(t, 0x21f0aaad);
+                t = t ^ t >>> 15; t = Math.imul(t, 0x735a2d97);
+                return ((t = t ^ t >>> 15) >>> 0) / 4294967296;
+            }
+        }
+
+        function getHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash << 5) - hash + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return hash;
+        }
+
+        // 4. Prediction Logic
+        function predictMines() {
+            const seedText = seedInput.value || Math.random().toString();
+            const seedValue = getHash(seedText);
+            const rand = splitmix32(seedValue);
+
+            // Reset UI first
+            const tiles = document.querySelectorAll('.tile');
+            tiles.forEach(t => {
+                t.classList.remove('safe', 'mine');
+                t.innerHTML = '';
+            });
+
+            // Create array of indices 0-24
+            let indices = Array.from({length: 25}, (_, i) => i);
+            
+            // Shuffle indices based on seed
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(rand() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+
+            // Pick 5 safe mines (💎), rest 20 are mines (💣)
+            const safeIndices = indices.slice(0, 5);
+            const mineIndices = indices.slice(5);
+
+            // Animate revealing
+            tiles.forEach((tile, idx) => {
+                setTimeout(() => {
+                    if (safeIndices.includes(idx)) {
+                        tile.classList.add('safe');
+                        tile.innerHTML = '💎';
+                    } else {
+                        tile.classList.add('mine');
+                        tile.innerHTML = '💣';
+                    }
+                }, idx * 30); // staggered reveal
+            });
+        }
+
+        // 5. Reset Game
+        function resetGame() {
+            const tiles = document.querySelectorAll('.tile');
+            tiles.forEach(t => {
+                t.classList.remove('safe', 'mine');
+                t.innerHTML = '';
+                t.style.transform = 'scale(1)';
+            });
+        }
+
+        // 7. Particle Background Generation
+        const bg = document.getElementById('bgAnimate');
+        for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.classList.add('particle');
+            const size = Math.random() * 5 + 2 + 'px';
+            p.style.width = size;
+            p.style.height = size;
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.animationDuration = Math.random() * 10 + 10 + 's';
+            p.style.animationDelay = Math.random() * 5 + 's';
+            bg.appendChild(p);
+        }
+
+        // 9. Light/Dark Mode Toggle
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.querySelector('.theme-toggle i');
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                icon.className = 'fas fa-moon';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+            }
+        }
+    </script>
+</body>
+</html>
